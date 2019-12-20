@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">ArFaceExample</string>
+    <string name="to_camera">To Camera</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>
