@@ -12,12 +12,17 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
 import android.view.View
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.arfaceexample.adapter.ListArFace
 import com.example.arfaceexample.model.Filter
 import com.example.arfaceexample.record.VideoRecorder
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.ar.core.ArCoreApk
 import com.google.ar.core.AugmentedFace
 import com.google.ar.core.TrackingState
@@ -26,6 +31,7 @@ import com.google.ar.sceneform.rendering.Renderable
 import com.google.ar.sceneform.rendering.Texture
 import com.google.ar.sceneform.ux.AugmentedFaceNode
 import kotlinx.android.synthetic.main.activity_augmented_face.*
+import java.io.File
 
 
 class AugmentedFaceActivity : AppCompatActivity() {
@@ -35,12 +41,14 @@ class AugmentedFaceActivity : AppCompatActivity() {
         private const val MIN_OPENGL_VERSION = 3.0
 
         const val EXTRA_MODEL = "extra_model"
-        const val ALERT_DIALOG_CLOSE = 10
-        const val ALERT_DIALOG_DELETE = 20
     }
 
     private lateinit var videoRecorder: VideoRecorder
     private lateinit var arFragment: FaceArFragment
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var linearLayout: LinearLayout
+    private lateinit var bottomSheetBehavior: BottomSheetBehavior<LinearLayout>
+    private lateinit var fabFilter: FloatingActionButton
 
     private var modelRenderable: ModelRenderable? = null
 //    private var texture: Texture? = null
@@ -56,6 +64,21 @@ class AugmentedFaceActivity : AppCompatActivity() {
 
         arFragment =
             supportFragmentManager.findFragmentById(R.id.face_fragment) as FaceArFragment
+
+        recyclerView = findViewById(R.id.rv_arFaces)
+        linearLayout = findViewById(R.id.bottom_sheet)
+
+        bottomSheetBehavior = BottomSheetBehavior.from(linearLayout)
+        bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+
+        fabFilter = findViewById(R.id.fab_filter)
+        fabFilter.setOnClickListener {
+            if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_COLLAPSED || bottomSheetBehavior.state == BottomSheetBehavior.STATE_HIDDEN) {
+                bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+            } else {
+                bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+            }
+        }
 
         val filters = getListFilter()
 
@@ -84,12 +107,13 @@ class AugmentedFaceActivity : AppCompatActivity() {
 
     }
 
+
     private fun intAdapter(filters: ArrayList<Filter>) {
-        rv_arFaces.layoutManager =
+        recyclerView.layoutManager =
             LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
 
         val filterAdapter = ListArFace(filters)
-        rv_arFaces.adapter = filterAdapter
+        recyclerView.adapter = filterAdapter
 
         filterAdapter.setOnItemClickCallback(object : ListArFace.OnItemClickCallback {
             override fun onItemClicked(data: Filter) {
@@ -136,6 +160,7 @@ class AugmentedFaceActivity : AppCompatActivity() {
         val listFilter = ArrayList<Filter>()
         listFilter.add(Filter(null, "No Filter", null))
         listFilter.add(Filter(null, "Fox", R.raw.fox_face))
+        listFilter.add(Filter(null, "Mask", R.raw.mask01))
         return listFilter
     }
 
@@ -268,15 +293,19 @@ class AugmentedFaceActivity : AppCompatActivity() {
         val recording = videoRecorder.onToggleRecord()
         if (recording) {
             record.setImageResource(R.drawable.round_stop)
+            bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+            
         } else {
             record.setImageResource(R.drawable.round_video_cam)
-
+            // save video to local
             val videoPath = videoRecorder.getVideoPath().absolutePath
             Toast.makeText(this, "Video saved: $videoPath", Toast.LENGTH_SHORT).show()
             Log.d(TAG, "Video saved: $videoPath")
 
-            //Send notification of updatedContent
+            //get preview video
+            getPreviewVideo()
 
+            //Send notification of updatedContent
             val values = ContentValues()
             values.put(MediaStore.Video.Media.TITLE, "Sceneform Video")
             values.put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
@@ -284,6 +313,40 @@ class AugmentedFaceActivity : AppCompatActivity() {
 
             contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values)
         }
+    }
+
+    private fun getPreviewVideo() {
+        val previewVideoFragment = PreviewVideoFragment()
+        val fragmentManager = supportFragmentManager
+
+        val bundle = Bundle()
+        bundle.putString(PreviewVideoFragment.EXTRA_DIR, videoRecorder.getVideoPath().absolutePath)
+        previewVideoFragment.arguments = bundle
+
+        fragmentManager
+            .beginTransaction()
+            .replace(
+                R.id.constain_container,
+                previewVideoFragment,
+                PreviewVideoFragment::class.java.simpleName
+            )
+            .addToBackStack(null)
+            .commit()
+//
+//        val intent = Intent(this, PreviewVideoActivity::class.java)
+//        startActivity(intent)
+
+    }
+
+    fun getFabFilterButton():FloatingActionButton{
+        return fabFilter
+    }
+
+    override fun onBackPressed() {
+        val intent = Intent(this, MainActivity::class.java)
+        startActivity(intent)
+        finish()
+
     }
 
 }

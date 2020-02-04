@@ -72,5 +72,9 @@ class FaceArFragment : ArFragment() {
         requireActivity().startActivity(intent)
     }
 
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        
+    }
+
 
 }

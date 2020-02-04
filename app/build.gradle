@@ -63,3 +63,9 @@ sceneform.asset('sampledata/models/Sunglasses_01.obj',
         'default',
         'sampledata/models/Sunglasses_01.sfa',
         'src/main/res/raw/sunglasses_01')
+
+
+sceneform.asset('sampledata/models/Mask01.FBX',
+        'default',
+        'sampledata/models/Mask01.sfa',
+        'src/main/res/raw/mask01')

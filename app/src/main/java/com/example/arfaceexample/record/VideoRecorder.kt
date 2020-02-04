@@ -13,13 +13,12 @@ import com.google.ar.sceneform.SceneView
 import java.io.File
 import java.io.IOException
 
-@Suppress("DEPRECATION")
 class VideoRecorder(private val context: Context) {
 
     companion object {
         private val TAG = VideoRecorder::class.java.simpleName
         private const val DEFAULT_BITRATE = 10000000
-        private const val DEFAULT_FRAMERATE = 30
+        private const val DEFAULT_FRAMERATE = 60
 
         private val FALLBACK_QUALITY_LEVELS = intArrayOf(
             CamcorderProfile.QUALITY_HIGH,
@@ -152,9 +151,9 @@ class VideoRecorder(private val context: Context) {
         }
 
         if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            setVideoSize(profile!!.videoFrameWidth, profile!!.videoFrameHeight)
+            setVideoSize(profile!!.videoFrameWidth, profile.videoFrameHeight)
         } else {
-            setVideoSize(profile!!.videoFrameHeight, profile!!.videoFrameWidth)
+            setVideoSize(profile!!.videoFrameHeight, profile.videoFrameWidth)
         }
         setVideoCodec(profile.videoCodec)
         setBitRate(profile.videoBitRate)
@@ -172,13 +171,13 @@ class VideoRecorder(private val context: Context) {
     private fun buildFilename() {
         if (videoDirectory == null) {
             videoDirectory = File(
-//                "${context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)}/Sceneform"
-                "${Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)}/Sceneform"
+                "${context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)}/Video"
+//                "${Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)}/Sceneform"
             )
         }
 
         if (videoBaseName == null) {
-            videoBaseName = "Sample"
+            videoBaseName = "Sceneform"
         }
 
         videoPath = File(
